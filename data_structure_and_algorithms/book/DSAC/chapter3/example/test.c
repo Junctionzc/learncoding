@@ -5,12 +5,12 @@ void ListTest();
 
 int main(int argc, char **argv)
 {
-    ListTest();
+    TestList();
     
     return 0;
 }
 
-void ListTest()
+void TestList()
 {
     struct Node node;
     List L = &node;
