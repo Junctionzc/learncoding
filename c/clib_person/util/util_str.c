@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 unsigned int strlen(unsigned char *str);
+int strcat(unsigned char *s, unsigned char *t);
 int char2asciistr(unsigned char ch, unsigned char *ascii_str);
 int asciistr2char(unsigned char *ascii_str, unsigned char *p_ch);
 int str2asciistr(unsigned char *str, unsigned char *ascii_str);
@@ -11,6 +12,8 @@ int main()
     unsigned char ch = 'A';
     unsigned char ascii_str[128];
     unsigned char str[128] = "GET /index.html";
+    unsigned char str1[32] = "hello";
+    unsigned char str2[] = " world";
     
     char2asciistr(ch, ascii_str);
     
@@ -46,6 +49,10 @@ int main()
     asciistr2char(ascii_str, &ch);  
     printf("hex:61 = %c\n", ch);
       
+    strcat(str1, str2);
+    printf("%s\n", str1);
+    
+      
     return 0;
 }
 
@@ -58,6 +65,21 @@ unsigned int strlen(unsigned char *str)
     }
         
     return i;
+}
+
+int strcat(unsigned char *s, unsigned char *t)
+{
+    while (*s != '\0') {
+        s++;
+    }
+    
+    while (*t != '\0') {
+        *s++ = *t++;
+    }
+    
+    *s = '\0';
+    
+    return 0;
 }
 
 // strlen(ascii_str) = 2
