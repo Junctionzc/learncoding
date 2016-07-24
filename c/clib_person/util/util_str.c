@@ -1,7 +1,6 @@
 #include <stdio.h>
+#include <string.h>
 
-unsigned int strlen(unsigned char *str);
-int strcat(unsigned char *s, unsigned char *t);
 int char2asciistr(unsigned char ch, unsigned char *ascii_str);
 int asciistr2char(unsigned char *ascii_str, unsigned char *p_ch);
 int str2asciistr(unsigned char *str, unsigned char *ascii_str);
@@ -53,32 +52,6 @@ int main()
     printf("%s\n", str1);
     
       
-    return 0;
-}
-
-unsigned int strlen(unsigned char *str) 
-{
-    unsigned int i = 0;
-    
-    while (str[i] != '\0') {
-        ++i;
-    }
-        
-    return i;
-}
-
-int strcat(unsigned char *s, unsigned char *t)
-{
-    while (*s != '\0') {
-        s++;
-    }
-    
-    while (*t != '\0') {
-        *s++ = *t++;
-    }
-    
-    *s = '\0';
-    
     return 0;
 }
 
@@ -152,5 +125,70 @@ int asciistr2str(unsigned char *ascii_str, unsigned char *str)
     printf("asc string: %s; ", ascii_str);
     printf("str: %s\n", str);
     
+    return 0;
+}
+
+int str_pop_data(char *src_str, char *tar_str) 
+{
+    char *data_beg;
+    char *data_end;
+    char data_len = 0;
+    
+    data_beg = strstr(src_str, "5\r\ndata:\r\n");
+    
+    if (data_beg == NULL) {
+        tar_str[0] = '\0';
+        return -1;
+    } else {
+        data_end = strstr(data_beg, "2\r\n\n\n\r\n");
+        
+        if (data_end != NULL) {
+            data_len = data_end - data_beg + 7;
+            
+            strncpy(tar_str, data_beg, data_len);
+            tar_str[data_len] = '\0';
+            *data_beg = '\0';
+            strcat(data_beg, data_end + 7);
+            
+        } else {
+            tar_str[0] = '\0';
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int str_get_data(char *src_str)
+{
+    int i = 0;
+    int j = 0;
+    int enter_count = 0;
+    char tar_str[1024];
+
+    if (strlen((const char *)src_str) >= 1024) {
+        return -1;
+    }
+
+    while (i < strlen((const char *)src_str)) {
+        if (src_str[i] == '\n') {
+            enter_count++;
+        }
+        
+        i++;
+        
+        if (enter_count == 3) {
+            while ((i < strlen((const char *)src_str)) && (src_str[i] != '\r')) {
+                tar_str[j++] = src_str[i++];
+            }
+            
+            break;
+        }
+    }
+    
+    tar_str[j] = '\0';
+
+    strcpy((char *)src_str, (const char *)tar_str);
+
     return 0;
 }
