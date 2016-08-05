@@ -5,6 +5,8 @@ int char2asciistr(unsigned char ch, unsigned char *ascii_str);
 int asciistr2char(unsigned char *ascii_str, unsigned char *p_ch);
 int str2asciistr(unsigned char *str, unsigned char *ascii_str);
 int asciistr2str(unsigned char *ascii_str, unsigned char *str);
+int http_pop_body(char *http_full_str, char *http_body_str);
+int int2str(unsigned int num, unsigned char str[6]);
 
 int main()
 {
@@ -13,6 +15,9 @@ int main()
     unsigned char str[128] = "GET /index.html";
     unsigned char str1[32] = "hello";
     unsigned char str2[] = " world";
+    unsigned char http_full_str[] = "HTTP/1.1 200 OK\r\nServer: Apache-Coyote/1.1\r\nCache-Control: no-store\r\nContent-Length: 11\r\nDate: Wed, 03 Aug 2016 02:53:35 GMT\r\n\r\nunactivated";
+    unsigned char http_body_str[128];
+    unsigned char str3[] = "";
     
     char2asciistr(ch, ascii_str);
     
@@ -51,6 +56,11 @@ int main()
     strcat(str1, str2);
     printf("%s\n", str1);
     
+    http_pop_body(http_full_str, http_body_str);
+    printf("%s\n", http_body_str);
+    
+    int2str(655355, str3);
+    printf("%s\n", str3);
       
     return 0;
 }
@@ -190,5 +200,33 @@ int str_get_data(char *src_str)
 
     strcpy((char *)src_str, (const char *)tar_str);
 
+    return 0;
+}
+
+int http_pop_body(char *http_full_str, char *http_body_str) 
+{
+    char *http_header_end;
+    
+    http_header_end = strstr(http_full_str, "\r\n\r\n");
+    
+    if (http_header_end == NULL) {
+        http_body_str[0] = '\0';
+        return -1;
+    } else {
+        strcpy(http_body_str, http_header_end + 4);
+    }
+
+    return 0;
+}
+
+int int2str(unsigned int num, unsigned char str[6])
+{
+    str[0] = num % 100000 / 10000 + '0';
+    str[1] = num % 10000 / 1000 + '0';
+    str[2] = num % 1000 / 100 + '0';
+    str[3] = num % 100 / 10 + '0';
+    str[4] = num % 10 + '0';
+    str[5] = '\0';
+    
     return 0;
 }
