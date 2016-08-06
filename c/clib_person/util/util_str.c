@@ -7,6 +7,7 @@ int str2asciistr(unsigned char *str, unsigned char *ascii_str);
 int asciistr2str(unsigned char *ascii_str, unsigned char *str);
 int http_pop_body(char *http_full_str, char *http_body_str);
 int int2str(unsigned int num, unsigned char str[6]);
+int str2float(unsigned char *str, float *f);
 int str_strip(unsigned char *str);
 int json_get_value(unsigned char *json_str, unsigned char *key, unsigned char *value);
 
@@ -23,7 +24,9 @@ int main()
     unsigned char json_str[] = "{\"event_type\": \"0\",\"event_data\": {\"total_amount\":0.01}}";
     unsigned char str4[] = "  a b  c  ";
     unsigned char json_value[128] = "";
-    
+    unsigned char str5[] = "12.0123";
+    float f = 0.0;
+
     char2asciistr(ch, ascii_str);
     
     ch = 'Z';
@@ -75,6 +78,9 @@ int main()
     json_get_value(json_str, "event_data", json_value);  
     json_get_value(json_value, "total_amount", json_value);
     
+    str2float(str5, &f);
+    printf("%f\n", f);
+
     return 0;
 }
 
@@ -333,11 +339,30 @@ int json_get_value(unsigned char *json_str, unsigned char *key, unsigned char *v
 int str2float(unsigned char *str, float *f)
 {
     unsigned int str_len = strlen(str);
-    unsigned int i = 0;   
-    
+    unsigned int i = 0;
+    unsigned int j = 0;
+    unsigned int str_has_point = 0;
+    unsigned int point_index = 0;
+    float dec_buf = 0.0;
+
+    (*f) = 0.0;
+
     for (i = 0; i < str_len; i++) {
-        if ((str[i] >= '0' && str[i] <= '9') || str[i] == '.') {
-            
+        if (str[i] >= '0' && str[i] <= '9') {
+            if (str_has_point == 0) {
+                (*f) = (*f) * 10 + (str[i] - '0');
+            } else {
+                dec_buf = str[i] - '0';
+
+                for (j = 0; j < i - point_index; j++) {
+                    dec_buf /= 10;
+                }
+    
+                (*f) = (*f) + dec_buf;
+            }
+        } else if (str[i] == '.') {
+            str_has_point = 1;
+            point_index = i;
         } else {
             return -1;
         }
