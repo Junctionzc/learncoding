@@ -7,6 +7,8 @@ int str2asciistr(unsigned char *str, unsigned char *ascii_str);
 int asciistr2str(unsigned char *ascii_str, unsigned char *str);
 int http_pop_body(char *http_full_str, char *http_body_str);
 int int2str(unsigned int num, unsigned char str[6]);
+int str_strip(unsigned char *str);
+int json_get_value(unsigned char *json_str, unsigned char *key, unsigned char *value);
 
 int main()
 {
@@ -17,7 +19,10 @@ int main()
     unsigned char str2[] = " world";
     unsigned char http_full_str[] = "HTTP/1.1 200 OK\r\nServer: Apache-Coyote/1.1\r\nCache-Control: no-store\r\nContent-Length: 11\r\nDate: Wed, 03 Aug 2016 02:53:35 GMT\r\n\r\nunactivated";
     unsigned char http_body_str[128];
-    unsigned char str3[] = "";
+    unsigned char str3[6] = "";
+    unsigned char json_str[] = "{\"event_type\": \"0\",\"event_data\": {\"total_amount\":0.01}}";
+    unsigned char str4[] = "  a b  c  ";
+    unsigned char json_value[128] = "";
     
     char2asciistr(ch, ascii_str);
     
@@ -62,6 +67,14 @@ int main()
     int2str(655355, str3);
     printf("%s\n", str3);
       
+    printf("%s\n", str4);  
+    str_strip(str4);  
+    printf("%s\n", str4);  
+      
+    json_get_value(json_str, "event_type", json_value);  
+    json_get_value(json_str, "event_data", json_value);  
+    json_get_value(json_value, "total_amount", json_value);
+    
     return 0;
 }
 
@@ -227,6 +240,108 @@ int int2str(unsigned int num, unsigned char str[6])
     str[3] = num % 100 / 10 + '0';
     str[4] = num % 10 + '0';
     str[5] = '\0';
+    
+    return 0;
+}
+
+int str_strip(unsigned char *str)
+{ 
+    unsigned char *p = str;
+    unsigned int str_len = strlen(str);
+    unsigned int i = 0;
+    
+    while ((*p) != '\0') {
+        if ((*p) == ' ') {
+            for (i = 0; i < str_len - (p - str) + 1; i++) {
+                str[p - str + i] = str[p - str + i + 1];
+            }
+            
+            str_len = strlen(str); 
+        }
+        
+        if (*p != ' ') {
+            p++;
+        }
+    }
+    
+    return 0;
+}
+
+int json_get_value(unsigned char *json_str, unsigned char *key, unsigned char *value)
+{
+    unsigned int json_str_len = 0;
+    unsigned char *key_beg = NULL;
+    unsigned char *key_end = NULL;
+    unsigned char *value_beg = NULL;
+    unsigned char *value_end = NULL;    
+    unsigned int value_len = 0;
+    
+    json_str_len = strlen(json_str);
+    
+    if (json_str[0] != '{' || json_str[json_str_len - 1] != '}') {
+        return -1;
+    }
+    
+    str_strip(json_str);
+    json_str_len = strlen(json_str);
+    
+    key_beg = strstr(json_str, key);
+    
+    if (key_beg != NULL) {
+        value_beg = strstr(key_beg, ":");
+        
+        if (value_beg != NULL) {
+            value_beg += 1;
+            value_end = strstr(value_beg, ",");
+            
+            if (value_end != NULL) {
+                value_len = value_end - value_beg;
+                strncpy(value, value_beg, value_len);
+                value[value_len] = '\0';
+            } else {
+                value_end = strstr(value_beg, "}");
+                
+                if (value_end != NULL) {
+                    
+                    if (*(value_end + 1) == '\0') {
+                        value_len = value_end - value_beg;
+                    } else {
+                        value_len = value_end - value_beg + 1;
+                    }
+                    
+                    strncpy(value, value_beg, value_len);
+                    value[value_len] = '\0';
+                    
+                    if (value[0] != '{' && value[value_len - 1] == '}') {
+                        value[0] = '\0';
+                        return -1;
+                    }
+                } else {
+                    return -1;
+                }
+            }
+        } else {
+            return -1;
+        }
+    } else {
+        return -1;
+    }
+    
+    return 0;
+}
+
+int str2float(unsigned char *str, float *f)
+{
+    unsigned int str_len = strlen(str);
+    unsigned int i = 0;   
+    
+    for (i = 0; i < str_len; i++) {
+        if ((str[i] >= '0' && str[i] <= '9') || str[i] == '.') {
+            
+        } else {
+            return -1;
+        }
+    }
     
     return 0;
 }
