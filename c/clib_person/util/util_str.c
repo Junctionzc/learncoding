@@ -7,6 +7,7 @@ int str2asciistr(unsigned char *str, unsigned char *ascii_str);
 int asciistr2str(unsigned char *ascii_str, unsigned char *str);
 int http_pop_body(char *http_full_str, char *http_body_str);
 int int2str(unsigned int num, unsigned char str[6]);
+int str2float(unsigned char *str, float *f);
 
 int main()
 {
@@ -17,8 +18,10 @@ int main()
     unsigned char str2[] = " world";
     unsigned char http_full_str[] = "HTTP/1.1 200 OK\r\nServer: Apache-Coyote/1.1\r\nCache-Control: no-store\r\nContent-Length: 11\r\nDate: Wed, 03 Aug 2016 02:53:35 GMT\r\n\r\nunactivated";
     unsigned char http_body_str[128];
-    unsigned char str3[] = "";
-    
+    unsigned char str3[6] = "";
+    unsigned char str4[] = "12.0123";
+    float f = 0.0;
+
     char2asciistr(ch, ascii_str);
     
     ch = 'Z';
@@ -62,6 +65,9 @@ int main()
     int2str(655355, str3);
     printf("%s\n", str3);
       
+    str2float(str4, &f);
+    printf("%f\n", f);
+
     return 0;
 }
 
@@ -228,5 +234,40 @@ int int2str(unsigned int num, unsigned char str[6])
     str[4] = num % 10 + '0';
     str[5] = '\0';
     
+    return 0;
+}
+
+int str2float(unsigned char *str, float *f)
+{
+    unsigned int str_len = strlen(str);
+    unsigned int i = 0;
+    unsigned int j = 0;
+    unsigned int str_has_point = 0;
+    unsigned int point_index = 0;
+    float dec_buf = 0.0;
+
+    (*f) = 0.0;
+
+    for (i = 0; i < str_len; i++) {
+        if (str[i] >= '0' && str[i] <= '9') {
+            if (str_has_point == 0) {
+                (*f) = (*f) * 10 + (str[i] - '0');
+            } else {
+                dec_buf = str[i] - '0';
+
+                for (j = 0; j < i - point_index; j++) {
+                    dec_buf /= 10;
+                }
+    
+                (*f) = (*f) + dec_buf;
+            }
+        } else if (str[i] == '.') {
+            str_has_point = 1;
+            point_index = i;
+        } else {
+            return -1;
+        }
+    }
+
     return 0;
 }
