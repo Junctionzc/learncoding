@@ -8,7 +8,7 @@ int asciistr2str(unsigned char *ascii_str, unsigned char *str);
 int http_pop_body(char *http_full_str, char *http_body_str);
 int int2str(unsigned int num, unsigned char str[6]);
 int str2float(unsigned char *str, float *f);
-int str_strip(unsigned char *str);
+int str_strip(unsigned char *str, unsigned char strip_ch);
 int json_get_value(unsigned char *json_str, unsigned char *key, unsigned char *value);
 
 int main()
@@ -71,12 +71,16 @@ int main()
     printf("%s\n", str3);
       
     printf("%s\n", str4);  
-    str_strip(str4);  
+    str_strip(str4, ' ');  
     printf("%s\n", str4);  
       
+    printf("%s\n", json_str);  
     json_get_value(json_str, "event_type", json_value);  
+    printf("%s\n", json_value);
     json_get_value(json_str, "event_data", json_value);  
+    printf("%s\n", json_value);
     json_get_value(json_value, "total_amount", json_value);
+    printf("%s\n", json_value);
     
     str2float(str5, &f);
     printf("%f\n", f);
@@ -250,14 +254,14 @@ int int2str(unsigned int num, unsigned char str[6])
     return 0;
 }
 
-int str_strip(unsigned char *str)
+int str_strip(unsigned char *str, unsigned char strip_ch)
 { 
     unsigned char *p = str;
     unsigned int str_len = strlen(str);
     unsigned int i = 0;
     
     while ((*p) != '\0') {
-        if ((*p) == ' ') {
+        if ((*p) == strip_ch) {
             for (i = 0; i < str_len - (p - str) + 1; i++) {
                 str[p - str + i] = str[p - str + i + 1];
             }
@@ -265,7 +269,7 @@ int str_strip(unsigned char *str)
             str_len = strlen(str); 
         }
         
-        if (*p != ' ') {
+        if (*p != strip_ch) {
             p++;
         }
     }
@@ -288,7 +292,7 @@ int json_get_value(unsigned char *json_str, unsigned char *key, unsigned char *v
         return -1;
     }
     
-    str_strip(json_str);
+    str_strip(json_str, ' ');
     json_str_len = strlen(json_str);
     
     key_beg = strstr(json_str, key);
@@ -298,32 +302,34 @@ int json_get_value(unsigned char *json_str, unsigned char *key, unsigned char *v
         
         if (value_beg != NULL) {
             value_beg += 1;
-            value_end = strstr(value_beg, ",");
             
-            if (value_end != NULL) {
-                value_len = value_end - value_beg;
-                strncpy(value, value_beg, value_len);
-                value[value_len] = '\0';
-            } else {
+            if (*value_beg == '{') {
                 value_end = strstr(value_beg, "}");
                 
-                if (value_end != NULL) {
-                    
-                    if (*(value_end + 1) == '\0') {
-                        value_len = value_end - value_beg;
-                    } else {
-                        value_len = value_end - value_beg + 1;
-                    }
-                    
+                if (value_end != NULL && (*(value_end + 1) == '}' || *(value_end + 1) == ',')) {
+                    value_len = value_end - value_beg + 1;
                     strncpy(value, value_beg, value_len);
                     value[value_len] = '\0';
-                    
-                    if (value[0] != '{' && value[value_len - 1] == '}') {
-                        value[0] = '\0';
-                        return -1;
-                    }
                 } else {
                     return -1;
+                }
+            } else {
+                value_end = strstr(value_beg, ",");
+                
+                if (value_end != NULL) {
+                    value_len = value_end - value_beg;
+                    strncpy(value, value_beg, value_len);
+                    value[value_len] = '\0';
+                } else {
+                    value_end = strstr(value_beg, "}");
+                    
+                    if (value_end != NULL) {
+                        value_len = value_end - value_beg;
+                        strncpy(value, value_beg, value_len);
+                        value[value_len] = '\0';
+                    } else {
+                        return -1;
+                    }
                 }
             }
         } else {
