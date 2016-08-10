@@ -103,6 +103,11 @@ int char2asciistr(unsigned char ch, unsigned char *ascii_str)
     return 0;      
 }
 
+int istrlen(unsigned char *str)
+{
+    return 0;
+}
+
 // ascii_str[2]
 // ascii_str = "61" -> *p_ch = 'a'
 int asciistr2char(unsigned char *ascii_str, unsigned char *p_ch)
